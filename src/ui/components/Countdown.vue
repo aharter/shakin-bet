@@ -1,6 +1,8 @@
 /*
     Copied from https://github.com/fareez-ahamed/countdown-vuejs
     Licensed under MIT license. See Countdown-LICENSE for full license.
+    Stops and triggers callback once, if timer reaches 00:00.
+    Setting date will enable trigger again.
 */
 <template>
     <div class="row">
@@ -51,11 +53,22 @@ export default {
         date : {
             type: Number,
             coerce: d => Math.trunc(d / 1000)
+        },
+        callback : {
+            type: Function,
+            default: function() {}
         }
     },
     data() {
         return {
-            now: Math.trunc((new Date()).getTime() / 1000)
+            now: Math.trunc((new Date()).getTime() / 1000),
+            callbackTriggered: false
+        }
+    },
+    watch: {
+        // reset callback trigger if time changed
+        date: function(newVal, oldVal) {
+            this.callbackTriggered = false;
         }
     },
     computed: {
@@ -63,6 +76,11 @@ export default {
             var sec = (this.date - this.now) % 60;
             if (sec <= 0) {
                 sec = 0;
+                // trigger callback
+                if (!this.callbackTriggerd) {
+                    this.callbackTriggerd = true;
+                    this.callback();
+                }
             }
             return sec;
         },
