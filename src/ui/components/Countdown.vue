@@ -74,11 +74,11 @@ export default {
     computed: {
         seconds() {
             var sec = (this.date - this.now) % 60;
-            if (sec <= 0) {
+            if (sec <= 0 && this.minutes <= 0) {
                 sec = 0;
                 // trigger callback
-                if (!this.callbackTriggerd) {
-                    this.callbackTriggerd = true;
+                if (!this.callbackTriggered) {
+                    this.callbackTriggered = true;
                     this.callback();
                 }
             }
