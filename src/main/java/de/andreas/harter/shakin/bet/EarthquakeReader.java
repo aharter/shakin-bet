@@ -70,8 +70,13 @@ public class EarthquakeReader {
 
         if (!features.getFeatures().isEmpty()) {
             Feature feature = getLatestFeature(features);
-            long timestamp = feature.getProperty(TIME_PROPERTY_NAME);
-            double magnitude = feature.getProperty(MAGNITUDE_PROPERTY_NAME);
+            // Casting to Number allows us to get expected type by calling
+            // the corresponding method.
+            Number t = (Number) feature.getProperty(TIME_PROPERTY_NAME);
+            Number m = (Number) feature.getProperty(MAGNITUDE_PROPERTY_NAME);
+            long timestamp = t.longValue();
+            double magnitude = m.doubleValue();
+
             if (timestamp > latestEarthquakeTimestamp) {
                 this.latestEarthquakeTimestamp = timestamp;
             }
