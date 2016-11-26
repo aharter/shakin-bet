@@ -122,6 +122,9 @@ body {
 </style>
 
 <script>
+var Vue = require('vue')
+Vue.use(require('vue-resource'))
+
 export default {
     data() {
         return {
@@ -136,8 +139,12 @@ export default {
             // minium magnitude is set to 2.0
             magnitudeBet: 20,
             magnitudeBetForm: 2,
-            nextBet: new Date().setMinutes(new Date().getMinutes() + 5)
+            //set date to "NaN" to get
+            nextBet: new Date().setSeconds(NaN)
         }
+    },
+    ready: function(){
+        this.fetchNextBetTime();
     },
     watch: {
         magnitudeBet: function(newVal, oldVal) {
@@ -154,13 +161,23 @@ export default {
         'countdown': require('./components/Countdown.vue')
     },
     methods: {
+        fetchNextBetTime: function() {
+            var self = this;
+            this.$http.get("/v1/next-bet-timestamp").then(function(response) {
+                const time = response['data']['timestamp'];
+                this.$set('nextBet', new Date(time));
+            }, function(resp) {
+                setTimeout(self.fetchNextBetTime, 1000);
+                this.$set('nextBet', new Date(0));
+            })
+        },
         placeBet: function() {
             this.state.placeBet = false;
         },
         // Callback if timer reaches 0.
         timerCallback: function() {
             if (this.state.placeBet) {
-                //TODO: reset timer
+                this.fetchNextBetTime();
                 //TODO: show message "you missed last bet, but a new one is coming" for X seconds
             }
         }
