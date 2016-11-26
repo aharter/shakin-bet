@@ -7,8 +7,8 @@
             </div>
         </div>
         <!-- Betting page -->
-        <h1 class="covers-heading" v-if="state.placeBet">Bet on the magnitude of the next earthquake!</h1>
-        <div class="cover-container" v-if="state.placeBet">
+        <h1 class="covers-heading" v-if="statePlaceBet">Bet on the magnitude of the next earthquake!</h1>
+        <div class="cover-container" v-if="statePlaceBet">
           <div class="inner cover">
             <p class="lead">
                 <form class="form-inliner row">
@@ -45,6 +45,20 @@
             <h1 class="cover-heading">Next bet in:</h1>
             <p class="lead"><countdown :date="nextBet" :callback="timerCallback"></countdown></p>
           </div>
+        </div>
+        <!-- waiting page -->
+        <div class="cover-container" v-if="stateWait">
+            <h1 class="cover-heading">Next bet in:</h1>
+            <p class="lead"><countdown :date="nextBet" :callback="timerCallback"></countdown></p>
+        </div>
+
+        <!-- waiting page -->
+        <div class="cover-container" v-if="stateResult">
+            <h1 class="cover-heading">Your bet: {{magnitudeBetForm}}</h1>
+            <h1 class="cover-heading">The result: {{resultMagnitude}}</h1>
+            <h1 class="cover-heading" v-if="resultMagnitude == magnitudeBetForm">You won!</h1>
+            <h1 class="cover-heading" v-else>You lost!</h1>
+            <!--<p class="lead"><countdown :date="nextBet" :callback="timerCallback"></countdown></p>-->
         </div>
       </div>
     </div>
@@ -139,8 +153,13 @@ export default {
     data() {
         return {
             state: {
-                placeBet: true
+                placeBet: true,
+                wait: false,
+                result: false
             },
+            statePlaceBet: true,
+            stateWait: false,
+            stateResult: false,
             // current bet
             bet: 0,
             // max credit
@@ -150,11 +169,17 @@ export default {
             magnitudeBet: 20,
             magnitudeBetForm: 2,
             //set date to "NaN" to get
-            nextBet: new Date().setSeconds(NaN)
+            nextBet: new Date().setSeconds(NaN),
+            lastResultTimestamp: 0,
+            lastResultMagnitude: 0,
+            resultTimestamp: 0,
+            resultMagnitude: 0
         }
     },
     ready: function(){
         this.fetchNextBetTime();
+        // fetch last result, updated using watchers.
+        this.fetchResult();
     },
     watch: {
         magnitudeBet: function(newVal, oldVal) {
@@ -164,6 +189,18 @@ export default {
         magnitudeBetForm: function(newVal, oldVal) {
             // transform range 0.0..10.0 to 0..100
             this.magnitudeBet = newVal * 10;
+        },
+        // If current result changes, update lastresult
+        resultTimestamp: function(newVal, oldVal) {
+            this.lastResultTimestamp = newVal;
+        },
+        resultMagintude: function(newVal, oldVal) {
+            this.lastResultMagnitude = newVal;
+        },
+        stateResult: function(newVal, oldVal) {
+            if (newVal) {
+                this.fetchResult();
+            }
         }
     },
     components: {
@@ -182,14 +219,34 @@ export default {
                 this.$set('nextBet', new Date(0));
             })
         },
+        fetchResult: function() {
+            var self = this;
+            this.$http.get("/v1/latest-earthquake").then(function(response) {
+                const time = response['data']['timestamp'];
+                const magnitude = response['data']['magnitude'];
+                this.$set('resultTimestamp', new Date(time));
+                this.$set('resultMagnitude', magnitude);
+            }, function(resp) {
+                setTimeout(self.fetchNextBetTime, 1000);
+                this.$set('resultMagnitude', new Date(0));
+            })
+        },
         placeBet: function() {
-            this.state.placeBet = false;
+            this.statePlaceBet = false;
+            if (new Date() < this.nextBet) {
+                this.stateWait = true;
+            } else {
+                this.stateResult = true;
+            }
         },
         // Callback if timer reaches 0.
         timerCallback: function() {
-            if (this.state.placeBet) {
+            if (this.statePlaceBet) {
                 this.fetchNextBetTime();
                 //TODO: show message "you missed last bet, but a new one is coming" for X seconds
+            } else if (this.stateWait) {
+                this.stateWait = false;
+                this.stateResult = true;
             }
         }
     }
