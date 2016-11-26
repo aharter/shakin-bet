@@ -1,8 +1,13 @@
 <template>
     <div class="site-wrapper">
       <div class="site-wrapper-inner">
-        <h1 class="covers-heading">Bet on the magnitude of the next earthquake!</h1>
+        <div class="masthead clearfix">
+            <div class="inner">
+                <motivation style="font-size: 25px;"></motivation>
+            </div>
+        </div>
         <!-- Betting page -->
+        <h1 class="covers-heading" v-if="state.placeBet">Bet on the magnitude of the next earthquake!</h1>
         <div class="cover-container" v-if="state.placeBet">
           <div class="inner cover">
             <p class="lead">
@@ -104,11 +109,16 @@ body {
  */
 @media (min-width: 768px) {
     /* Pull out the header and footer */
+    .masthead {
+        position: fixed;
+        top: 0;
+    }
     /* Start the vertical centering */
     .site-wrapper-inner {
         vertical-align: middle;
     }
     /* Handle the widths */
+    .masthead,
     .cover-container {
         width: 100%; /* Must be percentage or pixels for horizontal alignment */
     }
@@ -158,7 +168,8 @@ export default {
     },
     components: {
         'vue-slider': require('vue-slider-component/src/vue-slider.vue'),
-        'countdown': require('./components/Countdown.vue')
+        'countdown': require('./components/Countdown.vue'),
+        'motivation': require('./components/motivation.vue')
     },
     methods: {
         fetchNextBetTime: function() {
