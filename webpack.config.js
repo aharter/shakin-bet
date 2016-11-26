@@ -39,7 +39,14 @@ const devConfig = {
     // Use HMR in dev env
     devServer: {
         hot: true,
-        inline: true
+        inline: true,
+        // Make sure, API requests are proxied to cherrypy server
+        proxy: {
+            '/v1': {
+                target: 'http://localhost:8090',
+                secure: false,
+            }
+        }
     },
     plugins: [
         new webpack.HotModuleReplacementPlugin()
