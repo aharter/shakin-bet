@@ -152,11 +152,6 @@ Vue.use(require('vue-resource'))
 export default {
     data() {
         return {
-            state: {
-                placeBet: true,
-                wait: false,
-                result: false
-            },
             statePlaceBet: true,
             stateWait: false,
             stateResult: false,
@@ -176,7 +171,7 @@ export default {
             resultMagnitude: 0
         }
     },
-    ready: function(){
+    ready: function() {
         this.fetchNextBetTime();
         // fetch last result, updated using watchers.
         this.fetchResult();
