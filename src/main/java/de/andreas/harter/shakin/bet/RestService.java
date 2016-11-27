@@ -64,7 +64,9 @@ public class RestService {
 
     @RequestMapping(value = "/latest-earthquake", method = RequestMethod.GET)
     public Earthquake getLatestEarthquake() {
-        return new Earthquake(earthquakeReader.getLatestEarthquakeTimestamp(),
-                earthquakeReader.getLatestEarthquakeMagnitude());
+        double magnitude = earthquakeReader.getLatestEarthquakeMagnitude();
+        // Truncate to one digit
+        magnitude = Math.floor(magnitude * 10) / 10;
+        return new Earthquake(earthquakeReader.getLatestEarthquakeTimestamp(), magnitude);
     }
 }
