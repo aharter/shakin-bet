@@ -153,6 +153,22 @@ body {
 var Vue = require('vue')
 Vue.use(require('vue-resource'))
 
+
+// Notification setup
+var MiniToastr = require('mini-toastr')
+// Setup messages output to `mini-toastr`
+function toast ({title, message, type, timeout, cb}) {
+  return MiniToastr[type](message, title, timeout, cb)
+}
+const options = {
+  success: toast,
+  error: toast,
+  info: toast,
+  warn: toast
+}
+Vue.use(require('vue-notifications'), options)
+
+
 export default {
     data() {
         return {
@@ -176,6 +192,7 @@ export default {
         }
     },
     ready: function() {
+        MiniToastr.init();
         this.fetchNextBetTime();
         // fetch last result, updated using watchers.
         this.fetchResult();
@@ -201,6 +218,7 @@ export default {
                     this.fetchNextBetTime();
                     this.stateResult = false;
                     this.stateWait = true;
+                    this.showNoEarthquakeMessage();
                     return;
                 }
                 if (this.resultMagnitude == this.magnitudeBetForm) {
@@ -275,6 +293,13 @@ export default {
             this.stateWait = false;
             this.stateResult = false;
             this.statePlaceBet = true;
+        }
+    },
+    notifications: {
+        showNoEarthquakeMessage: {
+            title: 'No earthquake!',
+            message: 'There was no earthquake, so we wait. Your bet is still valid!',
+            type: 'info'
         }
     }
 }
