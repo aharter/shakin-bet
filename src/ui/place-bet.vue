@@ -15,7 +15,7 @@
                     <div class="col-md-1"></div>
                     <div class="form-group col-md-3">
                         <label for="creditInput">Your Credit ($):</label>
-                        <input type="number" class="form-control" id="creditInput" size="4" readonly v-model="credit">
+                        <input type="number" class="form-control" id="creditInput" size="4" readonly v-model="creditForm">
                     </div>
                     <div class="form-group col-md-4 slider-container">
                         <vue-slider v-ref:slider :tooltip="false" :value.sync="bet" :max.sync="credit"></vue-slider>
@@ -179,6 +179,8 @@ export default {
             bet: 0,
             // max credit
             credit: 500,
+            // credit for form
+            creditForm: 500,
             // slider component does not allow 0.1 steps, so we need to work around it
             // minium magnitude is set to 2.0
             magnitudeBet: 20,
@@ -198,6 +200,9 @@ export default {
         this.fetchResult();
     },
     watch: {
+        bet: function(newVal, oldVal) {
+            this.creditForm = this.credit - this.bet;
+        },
         magnitudeBet: function(newVal, oldVal) {
             // transform range 0..100 to 0.0..10.0
             this.magnitudeBetForm = newVal / 10;
