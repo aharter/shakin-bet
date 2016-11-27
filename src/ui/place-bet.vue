@@ -57,7 +57,11 @@
             <h1 class="cover-heading">Your bet: {{magnitudeBetForm}}</h1>
             <h1 class="cover-heading">The result: {{resultMagnitude}}</h1>
             <h1 class="cover-heading" v-if="resultMagnitude == magnitudeBetForm">You won!</h1>
-            <h1 class="cover-heading" v-else>You lost!</h1>
+            <h1 class="cover-heading" v-else>You lost! <span v-if="credit == 0">...Everything!</span></h1>
+            <p v-if="credit > 0" class="lead">
+              <button v-on:click="retry()" class="btn btn-success" role="button">Retry</button>
+            </p>
+
             <!--<p class="lead"><countdown :date="nextBet" :callback="timerCallback"></countdown></p>-->
         </div>
       </div>
@@ -187,10 +191,31 @@ export default {
         },
         // If current result changes, update lastresult
         resultTimestamp: function(newVal, oldVal) {
+            if (newVal == Math.NaN) {
+                return;
+            }
+            if (this.stateResult) {
+                // Compare datestring instead of ac
+                if (this.lastResultTimestamp.toDateString() == newVal.toDateString()
+                    && this.lastResultMagnitude == this.resultMagnitude) {
+                    this.fetchNextBetTime();
+                    this.stateResult = false;
+                    this.stateWait = true;
+                    return;
+                }
+                if (this.resultMagnitude == this.magnitudeBetForm) {
+                    // 5% win
+                    this.credit += Math.floor(this.bet * 1.05);
+                } else {
+                    this.credit -= this.bet;
+                }
+                // reset bet values
+                this.bet = 0;
+                this.magnitudeBet = 20;
+                this.magnitudeBetForm = 2;
+            }
             this.lastResultTimestamp = newVal;
-        },
-        resultMagintude: function(newVal, oldVal) {
-            this.lastResultMagnitude = newVal;
+            this.lastResultMagnitude = this.resultMagnitude;
         },
         stateResult: function(newVal, oldVal) {
             if (newVal) {
@@ -219,8 +244,10 @@ export default {
             this.$http.get("/v1/latest-earthquake").then(function(response) {
                 const time = response['data']['timestamp'];
                 const magnitude = response['data']['magnitude'];
-                this.$set('resultTimestamp', new Date(time));
                 this.$set('resultMagnitude', magnitude);
+                // Force watcher to be triggered
+                this.$set('resultTimestamp', Math.NaN);
+                this.$set('resultTimestamp', new Date(time));
             }, function(resp) {
                 setTimeout(self.fetchNextBetTime, 1000);
                 this.$set('resultMagnitude', new Date(0));
@@ -243,6 +270,11 @@ export default {
                 this.stateWait = false;
                 this.stateResult = true;
             }
+        },
+        retry: function() {
+            this.stateWait = false;
+            this.stateResult = false;
+            this.statePlaceBet = true;
         }
     }
 }
