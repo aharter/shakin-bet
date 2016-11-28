@@ -215,7 +215,7 @@ export default {
             if (newVal == Math.NaN) {
                 return;
             }
-            if (this.stateResult) {
+            if (this.stateWait || this.stateResult) {
                 // Compare datestring instead of ac
                 if (this.lastResultTimestamp.toDateString() == newVal.toDateString()
                     && this.lastResultMagnitude == this.resultMagnitude) {
@@ -231,18 +231,11 @@ export default {
                 } else {
                     this.credit -= this.bet;
                 }
-                // reset bet values
-                this.bet = 0;
-                this.magnitudeBet = 0;
-                this.magnitudeBetForm = 0;
+                this.stateWait = false;
+                this.stateResult = true;
             }
             this.lastResultTimestamp = newVal;
             this.lastResultMagnitude = this.resultMagnitude;
-        },
-        stateResult: function(newVal, oldVal) {
-            if (newVal) {
-                this.fetchResult();
-            }
         }
     },
     components: {
@@ -280,6 +273,7 @@ export default {
             if (new Date() < this.nextBet) {
                 this.stateWait = true;
             } else {
+                this.fetchResult();
                 this.stateResult = true;
             }
         },
@@ -289,11 +283,14 @@ export default {
                 this.fetchNextBetTime();
                 //TODO: show message "you missed last bet, but a new one is coming" for X seconds
             } else if (this.stateWait) {
-                this.stateWait = false;
-                this.stateResult = true;
+                this.fetchResult();
             }
         },
         retry: function() {
+            // reset bet values
+            this.bet = 0;
+            this.magnitudeBet = 0;
+            this.magnitudeBetForm = 0;
             this.stateWait = false;
             this.stateResult = false;
             this.statePlaceBet = true;
