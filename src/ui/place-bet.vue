@@ -31,7 +31,7 @@
                 <form class="form-inliner row">
                     <div class="form-group col-md-4"></div>
                     <div class="form-group col-md-4 slider-container">
-                        <vue-slider v-ref:magnitudeSlider :value.sync="magnitudeBet" :tooltip="false" :min.sync="20" :max.sync="100"></vue-slider>
+                        <vue-slider v-ref:magnitudeSlider :value.sync="magnitudeBet" :tooltip="false" :min.sync="0" :max.sync="100"></vue-slider>
                     </div>
                     <div class="form-group col-md-3">
                         <label for="magnitudeInput">Richter scale:</label>
@@ -40,7 +40,7 @@
                 </form>
             </p>
             <p class="lead">
-              <button v-on:click="placeBet()" class="btn btn-success" role="button" :class="{'disabled': bet <= 0}">Place bet</button>
+              <button v-on:click="placeBet()" class="btn btn-success" role="button" :class="{'disabled': bet <= 0 || magnitudeBet <= 0}">Place bet</button>
             </p>
             <h1 class="cover-heading">Next bet in:</h1>
             <p class="lead"><countdown :date="nextBet" :callback="timerCallback"></countdown></p>
@@ -182,9 +182,8 @@ export default {
             // credit for form
             creditForm: 500,
             // slider component does not allow 0.1 steps, so we need to work around it
-            // minium magnitude is set to 2.0
-            magnitudeBet: 20,
-            magnitudeBetForm: 2,
+            magnitudeBet: 0,
+            magnitudeBetForm: 0,
             //set date to "NaN" to get
             nextBet: new Date().setSeconds(NaN),
             lastResultTimestamp: 0,
@@ -234,8 +233,8 @@ export default {
                 }
                 // reset bet values
                 this.bet = 0;
-                this.magnitudeBet = 20;
-                this.magnitudeBetForm = 2;
+                this.magnitudeBet = 0;
+                this.magnitudeBetForm = 0;
             }
             this.lastResultTimestamp = newVal;
             this.lastResultMagnitude = this.resultMagnitude;
